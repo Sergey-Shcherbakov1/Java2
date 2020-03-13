@@ -10,6 +10,7 @@ package HomeworkLesson1;
 
 
 import HomeworkLesson1.Ball;
+import HomeworkLesson1.Background;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,6 +21,7 @@ import java.awt.event.MouseEvent;
 public class MainCircles extends JFrame {
 
     private Sprite[] sprites = new Ball[10];
+    private Background backgroundColor = new Background(this);
     private static final int POS_X = 100;
     private static final int POS_Y = 100;
     private static final int WINDOW_WIDTH = 800;
@@ -39,7 +41,7 @@ public class MainCircles extends JFrame {
 
         MainCanvas canvas = new MainCanvas(this);
         initSprites();
-
+        updateBackgroundColor(canvas);
         add(canvas);
 //не работает       spritesOnClick(canvas);
         setVisible(true);
@@ -61,6 +63,17 @@ public class MainCircles extends JFrame {
         for (int i = 0; i < sprites.length; i++) {
             sprites[i] = new Ball();
         }
+    }
+
+    private void updateBackgroundColor(MainCanvas canvas) {
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if ( e.getButton() == MouseEvent.BUTTON3 ) {
+                    backgroundColor.bgColorset(canvas);
+                }
+            }
+        });
     }
 
     protected void onCanvasRepainted(MainCanvas canvas, Graphics graphics, float deltaTime) {
