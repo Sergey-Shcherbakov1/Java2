@@ -1,11 +1,12 @@
 package Lesson4.Client.GUI;
 
-import Lesson4.Server.GUI.ServerGUI;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler {
     private static final int WIDTH = 400;
@@ -26,17 +27,22 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
     private final JButton btnSend = new JButton("Send");
 
     private final JList<String> userList = new JList<>();
+    private final BufferedWriter writer = new BufferedWriter(new FileWriter("log.txt", false));
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                new ClientGUI();
+                try {
+                    new ClientGUI();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
-    private ClientGUI() {
+    private ClientGUI() throws IOException {
         Thread.setDefaultUncaughtExceptionHandler(this);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -47,10 +53,13 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
                 "user_with_an_exceptionally_long_name_in_this_chat"};
         userList.setListData(users);
         log.setEditable(false);
+        log.setLineWrap(true);
         JScrollPane scrollLog = new JScrollPane(log);
         JScrollPane scrollUsers = new JScrollPane(userList);
         scrollUsers.setPreferredSize(new Dimension(100, 0));
         cbAlwaysOnTop.addActionListener(this);
+        btnSend.addActionListener(this);
+        tfMessage.addActionListener(this);
 
         panelTop.add(tfIPAddress);
         panelTop.add(tfPort);
@@ -70,12 +79,32 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         setVisible(true);
     }
 
+    private void writeLog (String text) {
+        try {
+            writer.write(text);
+            writer.append('\n');
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("IOException Error");
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
         if ( src == cbAlwaysOnTop ) {
             setAlwaysOnTop(cbAlwaysOnTop.isSelected());
-        } else
+        } else if ( src == btnSend || src == tfMessage) {
+            String text = tfMessage.getText();
+            log.append(text + "\n");
+            //по всей видимости, отсюда вызвать метод для создания лога в файле
+            //правда, на Java 1 не проходил этого
+            //поэтому честно списал в интернете :)
+            writeLog (text);
+            tfMessage.setText("");
+        }
+        else
             throw new RuntimeException("Unknown source: " + src);
     }
 
@@ -89,4 +118,6 @@ public class ClientGUI extends JFrame implements ActionListener, Thread.Uncaught
         JOptionPane.showMessageDialog(null, msg, "Exception", JOptionPane.ERROR_MESSAGE);
         System.exit(1);
     }
+
 }
+
